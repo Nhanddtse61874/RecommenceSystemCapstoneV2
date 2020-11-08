@@ -55,12 +55,11 @@ namespace Business.Services
                 }
             }
             ///////////////
-            //param K   ////////////////////
+            //param K   /////
             if(count > 3)
             {
                 return resultList;
             }
-            
             return null;
 ;
         }
