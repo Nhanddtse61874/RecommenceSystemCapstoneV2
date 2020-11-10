@@ -60,7 +60,7 @@ namespace Business.Services
 
             //find avarage by user Logging
             var avaragePrice = GetAvaragePrice(recommence.ProductCodeOfUserLogging.ToList());
-            Dictionary <double ,List<Product>> dic = new Dictionary<double, List<Product>>();
+            Dictionary < List < Product > ,double > dic = new Dictionary<List<Product>, double>();
             //Distance logging user and other users
             foreach (var item in recommence.ListDataProductCodes)
             {
@@ -73,20 +73,25 @@ namespace Business.Services
             // take users have nearest average price and return list users 
             for (int i = 0; i < list.Count; i++)
             {
-                dic.Add(list[i], recommence.ListDataProductCodes[i]);
+                dic.Add( recommence.ListDataProductCodes[i], list[i]);
             }
-            var products = dic.OrderBy(x => x.Key).Select(x => x.Value);
+            var products = dic.OrderBy(x => x.Value).Select(x => x.Key);
 
+            //take list products orderby distance
             foreach (var item in products)
             {
-                var listAfterDistinct = ListDistinct(recommence.ProductCodeOfUserLogging.ToList(), item);
-                listProducts = listProducts.Concat(listAfterDistinct);
+                if (listProducts.Count() <= 10)
+                {
+                    var listAfterDistinct = ListDistinct(recommence.ProductCodeOfUserLogging.ToList(), item);
+                    listProducts = listProducts.Concat(listAfterDistinct);
+                }
+                else break;
             }
            
             return listProducts.Distinct().ToList();
         }
 
-
+        //find products to recommend after select list history purchased
         public IList<Product> ListDistinct(IList<Product> list1, IList<Product> list2)
         {
             int count = 0;
@@ -106,7 +111,7 @@ namespace Business.Services
                 }
             }
             //param K
-            if (count > 3)
+            if (count > 5)
             {
                 return resultList;
             }

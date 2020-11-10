@@ -58,7 +58,7 @@ namespace Business.Services
             //param K   /////
             if(count > 3)
             {
-                return resultList;
+                return resultList.Distinct().ToList();
             }
             return null;
 ;
@@ -68,22 +68,32 @@ namespace Business.Services
         {
             int cate1 = 0;
             int cate2 = 0;
+            int cate3 = 0;
+            int cate4 = 0;
             IEnumerable<Product> resultProducts = new List<Product>();
             foreach (var item in recommence.ListDataProductCodes)
             {
-                resultProducts = resultProducts.Concat(ListDistinct(recommence.ProductCodeOfUserLogging.ToList(), item));
+                
+                var list = ListDistinct(recommence.ProductCodeOfUserLogging.ToList(), item);
+                if(list != null)
+                {
+                    resultProducts = resultProducts.Concat(ListDistinct(recommence.ProductCodeOfUserLogging.ToList(), item));
+
+                }
             }
             var listCategory = recommence.ProductCodeOfUserLogging.Select(x => x.CategoryId).ToList();
 
             //get 2 selected nearest category.
-            if (listCategory.Count >= 2)
+            if (listCategory.Count >= 4)
             {
                 cate1 = listCategory[listCategory.Count - 1];
                 cate2 = listCategory[listCategory.Count - 2];
+                cate3 = listCategory[listCategory.Count - 3];
+                cate4 = listCategory[listCategory.Count - 4];
             }
 
             //get products in  2 category from listResult
-            var result = resultProducts.Where(x => x.CategoryId == cate1 || x.CategoryId == cate2);
+            var result = resultProducts.Where(x => x.CategoryId == cate1 || x.CategoryId == cate2 || x.CategoryId == cate4 || x.CategoryId == cate3);
 
             //create new product if not existed
             //_productService.CreateListProducts(result.ToList());
@@ -113,7 +123,7 @@ namespace Business.Services
         //---------------------------------------------------------------------------------------------
         public void Update(RecommenceHobby modifiedmodel)
         {
-            var updateModel = _repo.Get(x => x.UserId == modifiedmodel.UserId);
+            var updateModel = _repo.Get(x => x.UserId == modifiedmodel.UserId, x => x.ProductRecommenceHobbies);
             updateModel.ProductRecommenceHobbies = modifiedmodel.ProductRecommenceHobbies;
             _repo.Update(updateModel);
             _unitOfWork.Save();

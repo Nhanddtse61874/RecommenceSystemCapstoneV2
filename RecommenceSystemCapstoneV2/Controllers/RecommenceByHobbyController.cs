@@ -82,7 +82,7 @@ namespace RecommenceSystemCapstoneV2.Controllers
                 var categoryId = item.CategoryId;
                 if (_categoryService.CheckCategory(categoryId))
                 {
-                    CategoryViewModel newCate = new CategoryViewModel();
+                    CreateCategoryViewModel newCate = new CreateCategoryViewModel();
                     newCate.Code = categoryId;
                     _categoryService.Create(_mapper.Map<Category>(newCate));
                 }
@@ -93,7 +93,7 @@ namespace RecommenceSystemCapstoneV2.Controllers
                 .Select(x => _productService.Create(_mapper.Map<Product>(x)));
             
             //create new user if not exist
-            UserViewModel newUser = new UserViewModel();
+            CreateUserViewModel newUser = new CreateUserViewModel();
             newUser.Code = userId;
             _userService.Create(_mapper.Map<User>(newUser));
             

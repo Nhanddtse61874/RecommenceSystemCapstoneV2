@@ -12,4 +12,10 @@ namespace RecommenceSystemCapstoneV2.ViewModels
 
       
     }
+    public class CreateCategoryViewModel
+    {
+        public int Id { get; set; }
+
+        public int Code { get; set; }
+    }
 }

@@ -43,6 +43,7 @@ namespace RecommenceSystemCapstoneV2.Controllers
         public ActionResult<IList<string>> LoadAndUpdate([FromForm]string data)
         {
             Recommence recommence = new Recommence();
+            //convert model from web 
             try
             {
                 recommence = JsonSerializer.Deserialize<Recommence>(data);
@@ -56,13 +57,38 @@ namespace RecommenceSystemCapstoneV2.Controllers
                 Console.WriteLine("Error");
             }
 
+            //check User and new if no exist
+            CreateUserViewModel newUser = new CreateUserViewModel();
+            if (_userService.CheckUserExist(recommence.UserId) == false)
+            {
+                newUser.Code = recommence.UserId;
+                _userService.Create(_mapper.Map<User>(newUser));
+            }
+
+
+            //get listproducts from model 
             var listProducts = _priceService.RecommendByPriceAvarageGetListProducts(recommence);
             var userId = recommence.UserId;
 
+            //check and new category if not exist
+            foreach (var item in listProducts)
+            {
+                if (_categoryService.CheckCategory(item.CategoryId) == false)
+                {
+                    CreateCategoryViewModel newModel = new CreateCategoryViewModel();
+                    newModel.Code = item.CategoryId;
+                    _categoryService.Create(_mapper.Map<Category>(newModel));
+                }
+
+            }
+            //check and create new product if not existed
             var products = _mapper.Map<IEnumerable<CreateProductViewModel>>(listProducts)
               .Select(x => _productService.Create(_mapper.Map<Product>(x)));
+            
+            //take list code of products to return for web
             IEnumerable<string> listCode = listProducts.Select(x => x.Code);
 
+            //create new model or update to savechanges
             CreateRecommenceByPriceViewModel hobbyViewModel = new CreateRecommenceByPriceViewModel();
             var list = _mapper.Map<IEnumerable<ProductViewModel>>(products);
             hobbyViewModel.ProductRecommencePrices = list;
@@ -70,6 +96,7 @@ namespace RecommenceSystemCapstoneV2.Controllers
             var a = _mapper.Map<RecommencePrice>(hobbyViewModel);
             _priceService.LoadAndUpdate(a);
 
+            //return product code for web 
             return Ok(listCode);
         }
     }

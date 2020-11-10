@@ -13,6 +13,8 @@ namespace Business.Services
         Product Create(Product product);
 
         IList<Product> GetByProductCodes(IList<string> productCodes);
+
+        Product Get(int productId);
     }
     public class ProductService : ServiceBase, IProductService
     {
@@ -37,7 +39,7 @@ namespace Business.Services
         //}
 
         public Product CheckExistProduct(string code)
-            => _productRepo.Get(filter : x => x.Code == code);
+            => _productRepo.Get(filter : x => x.Code == code, x => x.ProductRecommencePrices, x=> x.ProductRecommenceHobbies);
 
         public Product Create(Product product)
         {
@@ -51,13 +53,18 @@ namespace Business.Services
            
         }
 
+        public Product Get(int productId)
+        {
+            var product = _productRepo.Get(x => x.Id == productId);
+            return product;
+        }
         public IList<Product> GetByProductCodes(IList<string> productCodes)
         {
             var result = new List<Product>();
 
             foreach (var item in productCodes)
             {
-                result.Add(_productRepo.Get(x => x.Code == item));
+                result.Add(_productRepo.Get(x => x.Code == item, x => x.ProductRecommenceHobbies, x => x.ProductRecommencePrices));
             }
             return result;
         }

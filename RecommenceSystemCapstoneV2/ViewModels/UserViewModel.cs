@@ -7,6 +7,12 @@ namespace RecommenceSystemCapstoneV2.ViewModels
 {
     public class UserViewModel
     {
+        public int Id { get; set; }
+        public int Code { get; set; }
+    }
+
+    public class CreateUserViewModel
+    {
         public int Code { get; set; }
     }
 }

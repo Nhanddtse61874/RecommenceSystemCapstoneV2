@@ -39,6 +39,7 @@ namespace RecommenceSystemCapstoneV2
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IRecommendBestSellerService, RecommendBestSellerService>();
             services.AddScoped<IRecommencePriceService, RecommencePriceService>();
+            services.AddScoped<IRecommenceByBothService, RecommenceByBothService>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddAutoMapper(typeof(Startup));
