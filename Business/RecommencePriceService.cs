@@ -78,12 +78,16 @@ namespace Business.Services
             var products = dic.OrderBy(x => x.Value).Select(x => x.Key);
 
             //take list products orderby distance
+          
             foreach (var item in products)
             {
                 if (listProducts.Count() <= 10)
                 {
                     var listAfterDistinct = ListDistinct(recommence.ProductCodeOfUserLogging.ToList(), item);
-                    listProducts = listProducts.Concat(listAfterDistinct);
+                    if (listAfterDistinct != null)
+                    {
+                        listProducts = listProducts.Concat(listAfterDistinct);
+                    }
                 }
                 else break;
             }
@@ -123,27 +127,31 @@ namespace Business.Services
         //find output from data from client => user and list products to recommend
         public IList<Product> RecommendByPriceAvarageGetListProducts (Recommence recommence)
         {
-            int cate1 = 0;
-            int cate2 = 0;
-            var userLoginAvarePrice = GetAvaragePrice(recommence.ProductCodeOfUserLogging.ToList());
-
-            //get all products of users have same avarage price from list data
-            var resultProducts = Distance(recommence).Distinct();
-
-            IList<Recommence> result = new List<Recommence>();
-
-            var listCategory = recommence.ProductCodeOfUserLogging.Select(x => x.CategoryId).ToList();
-            //find 2 selected nearest catagory
-            if (listCategory.Count >= 2)
+            if(recommence != null)
             {
-                cate1 = listCategory[listCategory.Count - 1];
-                cate2 = listCategory[listCategory.Count - 2];
-            }
-            
-            //get final list product after query with conditions
-            //var resultAfter = resultProducts.Where(x => x.CategoryId == cate1 || x.CategoryId == cate2);
+                int cate1 = 0;
+                int cate2 = 0;
+                var userLoginAvarePrice = GetAvaragePrice(recommence.ProductCodeOfUserLogging.ToList());
 
-            return resultProducts.Distinct().ToList();
+                //get all products of users have same avarage price from list data
+                var resultProducts = Distance(recommence).Distinct();
+
+                IList<Recommence> result = new List<Recommence>();
+
+                var listCategory = recommence.ProductCodeOfUserLogging.Select(x => x.CategoryId).ToList();
+                //find 2 selected nearest catagory
+                if (listCategory.Count >= 2)
+                {
+                    cate1 = listCategory[listCategory.Count - 1];
+                    cate2 = listCategory[listCategory.Count - 2];
+                }
+
+                //get final list product after query with conditions
+                //var resultAfter = resultProducts.Where(x => x.CategoryId == cate1 || x.CategoryId == cate2);
+
+                return resultProducts.Distinct().ToList();
+            }
+            return null;
         }
 
 
@@ -151,7 +159,7 @@ namespace Business.Services
         // check data of user exist ? if it's existed get it to next method
         public RecommencePrice CheckAndLoadFromDb(int userLoggingId)
         {
-            var result = _repo.Get(x => x.User.Id == userLoggingId, x => x.ProductRecommencePrices);
+            var result = _repo.Get(x => x.UserId == userLoggingId, x => x.ProductRecommencePrices);
             return result;
         }
 
@@ -160,13 +168,16 @@ namespace Business.Services
         {
 
             var result = CheckAndLoadFromDb(newModel.UserId);
-            if (result == null)
+            if(newModel != null)
             {
-                Create(newModel);
-            }
-            else
-            {
-                Update(newModel);
+                if (result == null)
+                {
+                    Create(newModel);
+                }
+                else
+                {
+                    Update(newModel);
+                }
             }
         }
 

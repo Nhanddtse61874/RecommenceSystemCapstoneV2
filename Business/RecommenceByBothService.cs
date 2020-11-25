@@ -1,9 +1,11 @@
-﻿using Business.Services;
+﻿using Azure.Storage.Queues;
+using Business.Services;
 using Persistence.Models;
 using Persistence.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Business
 {
@@ -19,6 +21,7 @@ namespace Business
 
         RecommenceByBoth CheckAndLoadFromDb(int userLoggingId);
     }
+
     public class RecommenceByBothService : ServiceBase, IRecommenceByBothService
     {
         private readonly IRepository<RecommenceByBoth> _repo;
@@ -36,7 +39,7 @@ namespace Business
             {
                 foreach (var item2 in list2)
                 {
-                    if(item1.Code == item2.Code)
+                    if (item1.Code == item2.Code)
                     {
                         result.Add(item1.Code);
                     }
@@ -77,7 +80,5 @@ namespace Business
             var result = _repo.Get(x => x.UserId == userLoggingId, x => x.ProductRecommenceByBoths);
             return result;
         }
-
-       
     }
 }

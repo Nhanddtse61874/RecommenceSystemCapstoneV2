@@ -49,14 +49,15 @@ namespace RecommenceSystemCapstoneV2.Controllers
                 .ForMember(x => x.Product, src => src.MapFrom(dest => dest));
 
 
-            CreateMap<Product, ProductRecommencePrice>()
-                .ForMember(x => x.Id, src => src.Ignore())
-                .ForMember(x => x.Product, src => src.MapFrom(dest => dest));
+            //CreateMap<Product, ProductRecommencePrice>()
+            //    .ForMember(x => x.Id, src => src.Ignore())
+            //    .ForMember(x => x.Product, src => src.MapFrom(dest => dest));
 
             CreateMap<ProductViewModel, ProductRecommenceHobby>()
                 .ForMember(x => x.Id, src => src.Ignore())
                 .ForMember(x => x.ProductId, src => src.MapFrom(dest => dest.Id))
-                .ForMember(x => x.Product, src => src.MapFrom(dest => dest)).ReverseMap();
+                //.ForMember(x => x.Product, src => src.MapFrom(dest => dest))
+                .ReverseMap();
             
             CreateMap<RecommencePrice, ProductRecommencePrice>()
                 .ForMember(x => x.RecommencePriceId, src => src.MapFrom(dest => dest.Id)).ReverseMap();

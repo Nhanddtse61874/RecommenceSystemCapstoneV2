@@ -25,6 +25,7 @@ namespace RecommenceSystemCapstoneV2.Controllers
         private readonly IUserService _userService;
         private readonly ICategoryService _categoryService;
         private readonly IRecommendBestSellerService _bestSellerService;
+
         public RecommenceByBothController(IMapper mapper, IRecommencePriceService priceService,
            IProductService productService,
            IUserService userService,
@@ -45,78 +46,79 @@ namespace RecommenceSystemCapstoneV2.Controllers
         }
 
         [HttpPost]
-        public ActionResult<ResultViewModel> Load([FromForm]string data)
+        public async Task<ActionResult<ResultViewModel>> Load(int Id)
         {
-            Recommence recommence = new Recommence();
-            //convert model from web 
-            try
-            {
-                recommence = JsonSerializer.Deserialize<Recommence>(data);
-                if (!TryValidateModel(recommence))
-                {
-                    return BadRequest(ModelState);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error");
-            }
-
-            var list = _hobbyService.CheckAndLoadFromDb(recommence.UserId).ProductRecommenceHobbies.Select(x => x.ProductId).ToList();
-            
-            IList<Product> hobbys = new List<Product>();
-            foreach (var item in list)
-            {
-                var product = _productService.Get(item);
-                hobbys.Add(product);
-            }
-
-            var list2 = _priceService.CheckAndLoadFromDb(recommence.UserId).ProductRecommencePrices.Select(x => x.ProductId).ToList();
-            IList<Product> prices= new List<Product>();
-            foreach (var item in list2)
-            {
-                var product = _productService.Get(item);
-                prices.Add(product);
-            }
-
-            var result = _bothService.GetListProductByBoth(hobbys, prices).Distinct().ToList();
-
-            var bestSeller = _bestSellerService.RecommendByBestSeller(recommence);
-            IList<string> finalResult = new List<string>();
-
+           
             ResultViewModel resultViewModel = new ResultViewModel();
-            if (result.Count < 4)
+            if (Id != null)
             {
-                if (hobbys.Count < 4)
+                IList<int> list = new List<int>();
+                var list1 = _hobbyService.CheckAndLoadFromDb(Id);
+                if(list1 != null)
                 {
-                    if (prices.Count < 4)
+                     list = list1.ProductRecommenceHobbies.Select(x => x.ProductId).ToList();
+                }
+                
+
+                IList<Product> hobbys = new List<Product>();
+                foreach (var item in list)
+                {
+                    var product = _productService.Get(item);
+                    hobbys.Add(product);
+                }
+                IList<int> list2 = new List<int>();
+                var list3 = _priceService.CheckAndLoadFromDb(Id);
+                if(list3 != null)
+                {
+                    list2 = list3.ProductRecommencePrices.Select(x => x.ProductId).ToList();
+
+                }
+                IList<Product> prices = new List<Product>();
+                foreach (var item in list2)
+                {
+                    var product = _productService.Get(item);
+                    prices.Add(product);
+                }
+
+                var result = _bothService.GetListProductByBoth(hobbys, prices).Distinct().ToList();
+
+
+                IList<string> finalResult = new List<string>();
+
+
+                if (result.Count < 4)
+                {
+                    if (hobbys.Count < 4)
                     {
-                        finalResult = bestSeller;
-                        resultViewModel.FinalResult = finalResult;
-                        resultViewModel.Name = "Best Seller For You";
+                        if (prices.Count < 4)
+                        {
+                            resultViewModel.FinalResult = null;
+                            resultViewModel.Name = "Best Seller For You";
+                        }
+                        else
+                        {
+                            finalResult = prices.Select(x => x.Code).ToList();
+                            resultViewModel.FinalResult = finalResult;
+                            resultViewModel.Name = "Recommend By Prices";
+                        }
                     }
                     else
                     {
-                        finalResult = prices.Select(x => x.Code).ToList();
+                        finalResult = hobbys.Select(x => x.Code).ToList();
                         resultViewModel.FinalResult = finalResult;
-                        resultViewModel.Name = "Recommend By Prices";
+                        resultViewModel.Name = "Recommend By Hobby";
                     }
                 }
                 else
                 {
-                    finalResult = hobbys.Select(x => x.Code).ToList();
+                    finalResult = result;
                     resultViewModel.FinalResult = finalResult;
-                    resultViewModel.Name = "Recommend By Hobby";
+                    resultViewModel.Name = "Best Recommend For You";
                 }
+                return Ok(resultViewModel);
             }
-            else
-            {
-                finalResult = result;
-                resultViewModel.FinalResult = finalResult;
-                resultViewModel.Name = "Best Recommend For You";
-            }
+            return Ok();
             
-            return Ok(resultViewModel);
         }
     }
 }

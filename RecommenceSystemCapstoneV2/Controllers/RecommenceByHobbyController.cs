@@ -26,15 +26,18 @@ namespace RecommenceSystemCapstoneV2.Controllers
         private readonly IUserService _userService;
         private readonly ICategoryService _categoryService;
         private readonly IRecommendBestSellerService _bestSellerService;
-       
+        private readonly IRecommencePriceService _priceService;
+
 
         public RecommenceByHobbyController(IMapper mapper, IRecommenceHobbyService hobbyService,
             IProductService productService,
             IUserService userService,
             ICategoryService categoryService,
-            IRecommendBestSellerService bestSellerService
+            IRecommendBestSellerService bestSellerService,
+            IRecommencePriceService priceService
             )
         {
+            _priceService = priceService;
             _hobbyService = hobbyService;
             _mapper = mapper;
             _productService = productService;
@@ -44,35 +47,9 @@ namespace RecommenceSystemCapstoneV2.Controllers
         }
 
         [HttpPost]
-        public  ActionResult<IList<string>> LoadAndUpdate([FromForm]string data)
+        public  ActionResult<IList<string>> LoadAndUpdate(Recommence recommence)
         {
-            //create queue
-            //QueueService queue = new QueueService();
-            //queue.CreateQueue(data);
-            
-            Recommence recommence = new Recommence();
-            try
-            {
-                 recommence =  JsonSerializer.Deserialize<Recommence>(data);
-                if (!TryValidateModel(recommence))
-                {
-                    return BadRequest(ModelState);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error");
-            }
-
-            //var finalResult = _hobbyService.CheckAndLoadFromDb(recommence.UserId);
-            //var finalListCodeProducts = finalResult.ProductRecommenceHobbies.Select(x => x.Product.Code);
-            //if (finalResult == null)
-            //{
-            //    finalListCodeProducts = ...... BestSeller
-            //}
-            //var x = _bestSellerService.RecommendByBestSeller(recommence);
-            
-            //get product list and userId
+           
             var result =_hobbyService.RecommenceByHobbyGetListProduct(recommence);
             var userId = recommence.UserId;
 
@@ -100,15 +77,50 @@ namespace RecommenceSystemCapstoneV2.Controllers
             //select list products'code
             IEnumerable<string> listCode = result.Select(x => x.Code);
             
-            //create RecommenceHobbyModel to save database
+           //create new model to store database
             CreateRecommenceByHobbyViewModel hobbyViewModel = new CreateRecommenceByHobbyViewModel();
             var list = _mapper.Map<IEnumerable<ProductViewModel>>(products);
             hobbyViewModel.ProductRecommenceHobbies = list;
             hobbyViewModel.UserId = userId;
+
+            //create RecommenceHobbyModel to save database
             var a = _mapper.Map<RecommenceHobby>(hobbyViewModel);
             _hobbyService.LoadAndUpdate(a);
+            //----------------------
+            //RecommenceByPriceService
+            
+            
+            //get listproducts from model 
+            var listProducts = _priceService.RecommendByPriceAvarageGetListProducts(recommence);
+            
+            
+            //check and new category if not exist
+            foreach (var item in listProducts)
+            {
+                if (_categoryService.CheckCategory(item.CategoryId) == false)
+                {
+                    CreateCategoryViewModel newModel = new CreateCategoryViewModel();
+                    newModel.Code = item.CategoryId;
+                    _categoryService.Create(_mapper.Map<Category>(newModel));
+                }
 
-            return Ok(listCode);
+            }
+            //check and create new product if not existed
+            var productPrices = _mapper.Map<IEnumerable<CreateProductViewModel>>(listProducts)
+              .Select(x => _productService.Create(_mapper.Map<Product>(x)));
+            
+            
+            //new model to store database
+            CreateRecommenceByPriceViewModel priceViewModel = new CreateRecommenceByPriceViewModel();
+            var listp = _mapper.Map<IEnumerable<ProductViewModel>>(productPrices);
+            priceViewModel.ProductRecommencePrices = listp;
+            priceViewModel.UserId = userId;
+
+            //create new model or update to savechanges
+            var b = _mapper.Map<RecommencePrice>(priceViewModel);
+            _priceService.LoadAndUpdate(b);
+
+            return Ok();
         }
     }
 }

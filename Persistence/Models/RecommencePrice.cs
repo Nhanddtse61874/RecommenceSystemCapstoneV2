@@ -8,7 +8,6 @@ namespace Persistence.Models
     {
         
         public int UserId { get; set; }
-        public User User { get; set; }
 
         public IList<ProductRecommencePrice> ProductRecommencePrices { get; set; }
     }
